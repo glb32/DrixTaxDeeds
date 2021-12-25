@@ -1,4 +1,5 @@
-import url_scraper,deed_scraper
+from .deed_scraper import *
+from .url_scraper import *
 
 
 class Auction:
@@ -16,3 +17,4 @@ class Deed():
         self.assessed_value = assessed_value
         self.location= location
         
+

@@ -39,5 +39,6 @@ def parseDeeds(baseUrl,auctionUrl):
     urls = [element['href'] for element in soup.find_all('a',{'onclick':'return showExitPopup();'})]
     addresses = [str(element.next_sibling.text + ' ' + element.next.next.next.next.text) for element in soup.find_all(lambda tag:tag.name=="th" and "Property Address:" in tag.text)]
     assessed_values = [element.next_sibling.text for element in soup.find_all(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text)]
-    
-    return (cases,bids,urls,addresses,map(price_parser.parser.parse_price,assessed_values))
+
+    return (cases,bids,urls,addresses,list(map(price_parser.parser.parse_price,assessed_values)))
+
