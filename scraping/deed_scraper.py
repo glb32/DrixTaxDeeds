@@ -1,5 +1,14 @@
 import requests, time, price_parser
 from bs4 import BeautifulSoup
+
+class Deed():
+    def __init__(self, case_no, opening_bid, url, property_address, assessed_value,location):
+        self.case_no = case_no
+        self.opening_bid = opening_bid
+        self.url = url
+        self.property_address = property_address
+        self.assessed_value = assessed_value
+        self.location= location
 #current time in milliseconds
 def nowMilliseconds():
    return int(time.time() * 1000)
@@ -21,7 +30,7 @@ def getAndParseAuctionHTML(session,base,direction):
     return raw
 
 def parseDeeds(baseUrl,auctionUrl):
-    
+    #parse data
     session=requests.Session()
     session.get(auctionUrl)
     raw = getAndParseAuctionHTML(session=session,base=baseUrl,direction=0)
@@ -41,4 +50,3 @@ def parseDeeds(baseUrl,auctionUrl):
     assessed_values = [element.next_sibling.text for element in soup.find_all(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text)]
 
     return (cases,bids,urls,addresses,list(map(price_parser.parser.parse_price,assessed_values)))
-
