@@ -11,7 +11,7 @@ state = int (0,3)
 see definition of getAllUrlsPerState()
 
 @desc:
-organizes tax deed and foreclosure site url.s into 
+organizes tax deed and foreclosure site urls into mongoDB database 
 '''
 def buildSiteDB(state):
     sites=url_scraper.getAllUrlsPerState(state)
