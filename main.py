@@ -24,6 +24,6 @@ def buildSiteDB(state):
             base.Taxdeeds.update_one({"siteName":key},{"$set":{str(key):sites[key]}}, upsert=True)
             base.Foreclosures.update_one({"siteName":key},{"$set":{str(key):sites[key]}}, upsert=True)
 
-def auctionSetter(siteObject):
+def updateAuctionDB(siteObject):
     pass
     
