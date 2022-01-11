@@ -37,8 +37,8 @@ def updateAuctionDB(foreclosure=False):
     for county in auctions:
         for array in county.values():
             for auction in array:
-                auction.deeds = deed_scraper.parseDeeds(auction.url)
-    client.DrixTaxDeeds.Auctions.delete_many()
+                auction['deeds'] = deed_scraper.parseDeeds(auction['url'])
+    client.DrixTaxDeeds.Auctions.delete_many({})
     client.DrixTaxDeeds.Auctions.insert_many(auctions)
 
                 
