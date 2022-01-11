@@ -31,8 +31,11 @@ def getAllUrlsPerState(state):
            sites[Site] ={'isTaxdeed':True , 'siteUrl':re.match("^.+?[^\/:](?=[?\/]|$)",json.loads(session.get(f"https://alachua.realtaxdeed.com/index.cfm?ZACTION=AJAX&ZMETHOD=LOGIN&func=SWITCH&VENDOR={sites[Site]}").content.strip())['URL']).group()}
         elif "Foreclosure" in Site:
              sites[Site] ={'isTaxdeed':False , 'siteUrl':re.match("^.+?[^\/:](?=[?\/]|$)",json.loads(session.get(f"https://alachua.realtaxdeed.com/index.cfm?ZACTION=AJAX&ZMETHOD=LOGIN&func=SWITCH&VENDOR={sites[Site]}").content.strip())['URL']).group()}
+        elif "." in Site or "-" in Site:
+            sites[re.sub("\.-","",Site)] ={'isTaxdeed':None , 'siteUrl':re.match("^.+?[^\/:](?=[?\/]|$)",json.loads(session.get(f"https://alachua.realtaxdeed.com/index.cfm?ZACTION=AJAX&ZMETHOD=LOGIN&func=SWITCH&VENDOR={sites[Site]}").content.strip())['URL']).group()}
         else:
             sites[Site] ={'isTaxdeed':None , 'siteUrl':re.match("^.+?[^\/:](?=[?\/]|$)",json.loads(session.get(f"https://alachua.realtaxdeed.com/index.cfm?ZACTION=AJAX&ZMETHOD=LOGIN&func=SWITCH&VENDOR={sites[Site]}").content.strip())['URL']).group()}
+    
     sites['Alachua Taxdeed'] ={'isTaxdeed':True , 'siteUrl':"https://alachua.realtaxdeed.com"}
     return sites
 
@@ -44,18 +47,20 @@ county:str
 @desc:
 gets all auctions for a county (e.g. Clay, Duval, etc.)
 '''
-def getAuctionsPerCounty(baseURL):
-    soup = bs4.BeautifulSoup(requests.get(baseURL + "/index.cfm?zaction=USER&zmethod=CALENDAR").content,'lxml')   
-    elem = soup.find_all("span", {"class": "CALTEXT"})
-    countyName = re.findall("(?<=\/\/)(.*?)(?=\.)",baseURL)[0]
+def getAuctionsPerCounty(baseURLs):
     auctions = []
-
-    for date in elem:
-        if "Tax Deed" == date.next_element:
-            if  datetime.strptime(date.parent.get("dayid"), '%m/%d/%Y') >= datetime.today():
-                     auctions.append(Auction(url= baseURL + "/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE={}".format(date.parent.get("dayid")), date =str(date.parent.get("dayid") + ' ' + date.find('span',{'class':'CALTIME'}).text),location=countyName,deeds=[]))
-            else:  
-                continue
+    for baseURL in baseURLs:
+        soup = bs4.BeautifulSoup(requests.get(baseURL[baseURL['siteName']]['siteUrl']+ "/index.cfm?zaction=USER&zmethod=CALENDAR").content,'lxml')   
+        elem = soup.find_all("span", {"class": "CALTEXT"})
+        countyName = baseURL['siteName']
+        active_auctions = []
+        for date in elem:
+            if "Tax Deed" == date.next_element:
+                if  datetime.strptime(date.parent.get("dayid"), '%m/%d/%Y') >= datetime.today():
+                        active_auctions.append(Auction(url= baseURL[baseURL['siteName']]['siteUrl'] + "/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE={}".format(date.parent.get("dayid")), date =str(date.parent.get("dayid") + ' ' + date.find('span',{'class':'CALTIME'}).text),location=countyName,deeds=[]))
+                else:  
+                    continue
+        auctions.append({countyName:active_auctions})
     return auctions
 
 

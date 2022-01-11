@@ -1,6 +1,8 @@
 import pymongo
 from scraping import url_scraper,deed_scraper
-client = pymongo.MongoClient("mongodb+srv://admin:admin@cluster0.goify.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+from urllib.parse import urlparse
+import datetime, time
+client=pymongo.MongoClient("mongodb+srv://admin:admin@cluster0.goify.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 base = client.DrixTaxDeeds
 
 
@@ -24,6 +26,22 @@ def buildSiteDB(state):
             base.Taxdeeds.update_one({"siteName":key},{"$set":{str(key):sites[key]}}, upsert=True)
             base.Foreclosures.update_one({"siteName":key},{"$set":{str(key):sites[key]}}, upsert=True)
 
-def updateAuctionDB(siteObject):
-    pass
+def updateAuctionDB(foreclosure=False):
+    SiteObjects = []
+    auctions = []
+    for x in base.Taxdeeds.find():
+        SiteObjects.append(x)
+    auctions = url_scraper.getAuctionsPerCounty(SiteObjects)
     
+
+    for county in auctions:
+        for array in county.values():
+            for auction in array:
+                auction.deeds = deed_scraper.parseDeeds(auction.url)
+                auctions.append(auction)
+    client.DrixTaxDeeds.Auctions.delete_many()
+    client.DrixTaxDeeds.Auctions.insert_many(auctions)
+
+                
+        
+updateAuctionDB()

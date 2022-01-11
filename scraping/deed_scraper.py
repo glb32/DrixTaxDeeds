@@ -1,14 +1,16 @@
+from attr import attrs
 import requests, time, price_parser
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 class Deed():
-    def __init__(self, case_no, opening_bid, url, property_address, assessed_value,location):
+    def __init__(self, case_no, opening_bid, url, property_address, assessed_value):
         self.case_no = case_no
         self.opening_bid = opening_bid
         self.url = url
         self.property_address = property_address
         self.assessed_value = assessed_value
-        self.location= location
+        
 #current time in milliseconds
 def nowMilliseconds():
    return int(time.time() * 1000)
@@ -21,7 +23,7 @@ def replaceSubstrs(substring_list,replace,string):
 
 def getAndParseAuctionHTML(session,base,direction):
     #get data
-    url = "{}/index.cfm?zaction=AUCTION&Zmethod=UPDATE&FNC=LOAD&AREA=W&PageDir=".format(base) + str(direction) + "&doR=0&tx=" + str(nowMilliseconds()) + "&bypassPage=0"
+    url = "https://{}/index.cfm?zaction=AUCTION&Zmethod=UPDATE&FNC=LOAD&AREA=W&PageDir=".format(base) + str(direction) + "&doR=0&tx=" + str(nowMilliseconds()) + "&bypassPage=0"
     cookies = session.cookies.get_dict()
     result = session.get(url,cookies=cookies).text
     raw = replaceSubstrs(["@A","@B","@C","@D","@E","@F","@G","@H","@I","@J","@K","@L"],"",result)
@@ -29,24 +31,29 @@ def getAndParseAuctionHTML(session,base,direction):
     raw = raw.strip()
     return raw
 
-def parseDeeds(baseUrl,auctionUrl):
-    #parse data
+def parseDeeds(auctionUrl):
+    deeds = []
     session=requests.Session()
     session.get(auctionUrl)
-    raw = getAndParseAuctionHTML(session=session,base=baseUrl,direction=0)
+    raw = getAndParseAuctionHTML(session=session,base=urlparse(auctionUrl).netloc,direction=0)
     
     while True:
-        next_call = getAndParseAuctionHTML(session,baseUrl,1)
+        next_call = getAndParseAuctionHTML(session,urlparse(auctionUrl).netloc,1)
         if next_call in raw:
             break
         else:
             raw = raw+"\n"+next_call
 
     soup = BeautifulSoup(raw,features='lxml')
-    cases = [element.next_sibling.text for element in soup.find_all('th',{'aria-label':'Case Number'})]
-    bids = [element.next_sibling.text for element in soup.find_all(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text)]
-    urls = [element['href'] for element in soup.find_all('a',{'onclick':'return showExitPopup();'})]
-    addresses = [str(element.next_sibling.text + ' ' + element.next.next.next.next.text) for element in soup.find_all(lambda tag:tag.name=="th" and "Property Address:" in tag.text)]
-    assessed_values = [element.next_sibling.text for element in soup.find_all(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text)]
+    
+    for element in soup.find_all('div',{'aria-label':'Auction Details'}):
+        case_no = element.find('th',{'aria-label':'Case Number'}).next_sibling.text
+        opening_bid = element.find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text).next_sibling.text
+        parcel_url = element.find_all('a',{'onclick':'return showExitPopup();'})[1].attrs['href'] if len(element.find_all('a',{'onclick':'return showExitPopup();'})) >1 else element.find_all('a',{'onclick':'return showExitPopup();'})[0].attrs['href']
+        parcel_address = str(element.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next_sibling.text + ' ' + element.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next.next.next.next.text) if element.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text) is not None else "NO ADDRESS PROVIDED, CHECK PARCEL URL"
+        assessed_value = price_parser.parser.parse_price(element.find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text).next_sibling.text).amount if element.find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text) is not None else "NO ASSESSED VALUE AVAILABLE"
 
-    return (cases,bids,urls,addresses,list(map(price_parser.parser.parse_price,assessed_values)))
+        deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value))
+    
+    return deeds
+   
