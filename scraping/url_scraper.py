@@ -1,6 +1,7 @@
 import requests,bs4,json,re
 from datetime import datetime
-
+from dateutil import parser
+import pytz
 class Auction:
     def __init__(self,date,location,url,deeds,unixTimestamp):
         self.date=date
@@ -57,8 +58,8 @@ def getAuctionsPerCounty(baseURLs):
         active_auctions = []
         for date in elem:
             if "Tax Deed" == date.next_element:
-                if  datetime.strptime(date.parent.get("dayid")+date.parent.find("span",{"class":"CALTIME"}), "%m %d %Y %-I %M %Z") >= datetime.today():
-                        active_auctions.append(Auction(url= baseURL[baseURL['siteName']]['siteUrl'] + "/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE={}".format(date.parent.get("dayid")), date =str(date.parent.get("dayid") + ' ' + date.find('span',{'class':'CALTIME'}).text),location=countyName,deeds=[],unixTimestamp=datetime.strptime(date.parent.get("dayid")+date.parent.find("span",{"class":"CALTIME"}).text, "%m %d %Y %-I %M %Z")).__dict__)
+                if  parser.parse(date.parent.get("dayid")+date.parent.find("span",{"class":"CALTIME"}).text,tzinfos={"CT":-6*3600,"ET":-5*3600}) >= datetime.now(pytz.timezone("US/Eastern")):
+                        active_auctions.append(Auction(url= baseURL[baseURL['siteName']]['siteUrl'] + "/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE={}".format(date.parent.get("dayid")), date =str(date.parent.get("dayid") + ' ' + date.find('span',{'class':'CALTIME'}).text),location=countyName,deeds=[],unixTimestamp=parser.parse(date.parent.get("dayid")+date.parent.find("span",{"class":"CALTIME"}).text , tzinfos = {"CT":-6*3600,"ET":-5*3600})).__dict__)
                 else:  
                     continue
         auctions.append({countyName:active_auctions})
