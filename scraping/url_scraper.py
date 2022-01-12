@@ -2,8 +2,9 @@ import requests,bs4,json,re
 from datetime import datetime
 
 class Auction:
-    def __init__(self,date,location,url,deeds):
+    def __init__(self,date,location,url,deeds,unixTimestamp):
         self.date=date
+        self.unixTimestamp = unixTimestamp
         self.location=location
         self.url=url
         self.deeds=deeds
@@ -56,8 +57,8 @@ def getAuctionsPerCounty(baseURLs):
         active_auctions = []
         for date in elem:
             if "Tax Deed" == date.next_element:
-                if  datetime.strptime(date.parent.get("dayid"), '%m/%d/%Y') >= datetime.today():
-                        active_auctions.append(Auction(url= baseURL[baseURL['siteName']]['siteUrl'] + "/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE={}".format(date.parent.get("dayid")), date =str(date.parent.get("dayid") + ' ' + date.find('span',{'class':'CALTIME'}).text),location=countyName,deeds=[]).__dict__)
+                if  datetime.strptime(date.parent.get("dayid"), "%m %d %Y %-I %M %Z") >= datetime.today():
+                        active_auctions.append(Auction(url= baseURL[baseURL['siteName']]['siteUrl'] + "/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE={}".format(date.parent.get("dayid")), date =str(date.parent.get("dayid") + ' ' + date.find('span',{'class':'CALTIME'}).text),location=countyName,deeds=[],unixTimestamp=datetime.strptime(date.parent.get("dayid", "%m %d %Y %-I %M %Z"))).__dict__)
                 else:  
                     continue
         auctions.append({countyName:active_auctions})
