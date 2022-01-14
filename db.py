@@ -41,4 +41,4 @@ def updateAuctionDB(foreclosure=False):
     client.DrixTaxDeeds.Auctions.find().sort('unixTimestamp',pymongo.ASCENDING)
 
                 
-        
+updateAuctionDB()
