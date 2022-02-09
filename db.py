@@ -55,10 +55,11 @@ def fetchAuctionsInDesiredRange(date1,date2,price=None):
     else:
         for auction in arr:
             for deed in auction:
-                if deed['assessed_value'] >= price[0] and deed['assessed_value'] <= price[1]: 
-                    pass
+                if deed['assessed_value'] >= price[0]: 
+                    if deed['assessed_value'] <= price[1]: 
+                        pass
                 else:
-                    auction.pop(deed)
+                    auction.remove(deed)
             auction = sorted(auction,key=lambda x: x['assessed_value'])
 
         
