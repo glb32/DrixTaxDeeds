@@ -48,6 +48,7 @@ def extractDeeds(auction):
 def fetchAuctionsInDesiredRange(date1,date2,price=None):
     auctions=client.DrixTaxDeeds.Auctions.find({"unixTimestamp":{"$gte":date1,"$lte":date2}})
     arr=[]
+    ret=[]
     for auction in auctions:
         arr.append(extractDeeds(auction))
     if price is None:
@@ -57,17 +58,16 @@ def fetchAuctionsInDesiredRange(date1,date2,price=None):
             for deed in auction:
                 if deed['assessed_value'] >= price[0]: 
                     if deed['assessed_value'] <= price[1]: 
-                        pass
+                        ret.append(deed)
                 else:
-                    auction.remove(deed)
-            auction = sorted(auction,key=lambda x: x['assessed_value'])
+                    pass
+            
 
         
     with open('auctions.json','w+') as f:
-        f.write(str(arr))
-    return arr, str(f"Fetched deeds in price range:{price[0]}-{price[1]} USD, and in date range {date1}-{date2}" )
-
-fetchAuctionsInDesiredRange(0,1644314400,[1300,5000])
+        f.write(str(ret))
+    return ret, str(f"Fetched deeds in price range:{price[0]}-{price[1]} USD, and in date range {date1}-{date2}" )
+fetchAuctionsInDesiredRange(0,1644314400,[1300,10000])
 
 
 
