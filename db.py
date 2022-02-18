@@ -53,21 +53,13 @@ def fetchAuctionsInDesiredRange(date1,date2,price=None):
     if price is None:
         pass
     else:
-        for auction in arr:
-            for deed in auction:
-                if deed['assessed_value'] >= price[0]: 
-                    if deed['assessed_value'] <= price[1]: 
-                        pass
-                else:
-                    auction.remove(deed)
-            auction = sorted(auction,key=lambda x: x['assessed_value'])
+        for auction in range(len(arr)):
+            arr[auction]=[deed for deed in arr[auction] if deed['assessed_value']>=price[0] and deed['assessed_value']<=price[1]]
+            
 
-        
-    with open('auctions.json','w+') as f:
-        f.write(str(arr))
-    return arr, str(f"Fetched deeds in price range:{price[0]}-{price[1]} USD, and in date range {date1}-{date2}" )
+    return arr
 
-fetchAuctionsInDesiredRange(0,1644314400,[1300,5000])
+
 
 
 
