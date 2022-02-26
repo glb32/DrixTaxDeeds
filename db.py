@@ -55,13 +55,17 @@ def fetchAuctionsInDesiredRange(date1,date2,price=None):
     else:
         for auction in range(len(arr)):
             arr[auction]=[deed for deed in arr[auction] if deed['assessed_value']>=price[0] and deed['assessed_value']<=price[1]]
-            
+        
+    return arr
 
+def fetchDeedsByCounty(county):
+    auctions = client.DrixTaxDeeds.Auctions.find({"location":county})
+    arr = []
+    for auction in auctions:
+        arr.append(auction['deeds'])
     return arr
 
 
-
-
-
+updateAuctionDB()
 
 

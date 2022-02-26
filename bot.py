@@ -21,6 +21,20 @@ async def greet(ctx, time: Option(str, "Time range. Format = 2022/2/20 2022/2/22
             embeds.add_field(name="Parcel URL:", value=deed['url'],inline=True)
             embeds.add_field(name="Property Address:", value=deed['property_address'],inline=True)
             embeds.add_field(name="Assessed Value:", value=deed['assessed_value'],inline=True)
+            embeds.add_field
             await ctx.send(embed=embeds)
 
+@bot.slash_command(guild_ids=[618048657001938974])
+async def auction_by_county(ctx,county: Option(str,"County",Required=True)):
+    data = db.fetchDeedsByCounty(county)
+    for auction in range(len(data)):
+        for deed in data[auction]:
+            embeds = discord.Embed()
+            embeds.add_field(name="Case Number:", value=deed['case_no'],inline=True)
+            embeds.add_field(name="Opening Bid:", value=deed['opening_bid'],inline=True)
+            embeds.add_field(name="Parcel URL:", value=deed['url'],inline=True)
+            embeds.add_field(name="Property Address:", value=deed['property_address'],inline=True)
+            embeds.add_field(name="Assessed Value:", value=deed['assessed_value'],inline=True)
+            embeds.add_field
+            await ctx.send(embed=embeds)
 bot.run(token)
