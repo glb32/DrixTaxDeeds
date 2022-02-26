@@ -45,15 +45,15 @@ def parseDeeds(auctionUrl):
             raw = raw+"\n"+next_call
 
     soup = BeautifulSoup(raw,features='lxml')
-    
-    for element in soup.find_all('div',{'aria-label':'Auction Details'}):
-        case_no = element.find('th',{'aria-label':'Case Number'}).next_sibling.text
-        opening_bid = element.find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text).next_sibling.text if element.find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text) is not None else "ERROR:Site provided wrong data"
-        parcel_url = element.find_all('a',{'onclick':'return showExitPopup();'})[1].attrs['href'] if len(element.find_all('a',{'onclick':'return showExitPopup();'})) >1 else element.find_all('a',{'onclick':'return showExitPopup();'})[0].attrs['href']
-        parcel_address = str(element.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next_sibling.text + ' ' + element.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next.next.next.next.text) if element.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text) is not None else "NO ADDRESS PROVIDED, CHECK PARCEL URL"
-        assessed_value = int(price_parser.parser.parse_price(element.find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text).next_sibling.text).amount) if element.find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text) is not None else 0
+    elements = soup.find_all('div',{'aria-label':'Auction Details'})
+    for element in range(len(elements)):
+        
+        case_no = elements[element].find('th',{'aria-label':'Case Number'}).next_sibling.text
+        opening_bid = elements[element].find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text).next_sibling.text if elements[element].find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text) is not None else "ERROR:Site provided wrong data"
+        parcel_url = elements[element].find_all(lambda tag:tag.name=="a" and "Parcel ID:" in tag.text)[element]
+        parcel_address = str(elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next_sibling.text + ' ' + elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next.next.next.next.text) if elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text) is not None else "NO ADDRESS PROVIDED, CHECK PARCEL URL"
+        assessed_value = int(price_parser.parser.parse_price(elements[element].find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text).next_sibling.text).amount) if elements[element].find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text) is not None else 0
 
         deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value).__dict__)
     
     return sorted(deeds,key=lambda x: int(x['assessed_value']))
-   
