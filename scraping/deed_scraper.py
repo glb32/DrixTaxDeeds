@@ -1,3 +1,4 @@
+from ast import parse
 from attr import attrs
 import requests, time, price_parser
 from bs4 import BeautifulSoup
@@ -50,10 +51,11 @@ def parseDeeds(auctionUrl):
         
         case_no = elements[element].find('th',{'aria-label':'Case Number'}).next_sibling.text
         opening_bid = elements[element].find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text).next_sibling.text if elements[element].find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text) is not None else "ERROR:Site provided wrong data"
-        parcel_url = elements[element].find_all(lambda tag:tag.name=="a" and "Parcel ID:" in tag.text)[element]
+        parcel_url = elements[element].find(lambda tag:tag.name=="th" and "Parcel ID:" in tag.text).next_sibling.find('a',{'onclick':"return showExitPopup();"})['href'] if elements[element].find(lambda tag:tag.name=="th" and "Parcel ID:" in tag.text) is not None else elements[element].find(lambda tag:tag.name=="th" and "Alternate Key" in tag.text).next_sibling.find('a',{'onclick':"return showExitPopup();"})['href']
         parcel_address = str(elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next_sibling.text + ' ' + elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next.next.next.next.text) if elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text) is not None else "NO ADDRESS PROVIDED, CHECK PARCEL URL"
         assessed_value = int(price_parser.parser.parse_price(elements[element].find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text).next_sibling.text).amount) if elements[element].find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text) is not None else 0
 
         deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value).__dict__)
     
     return sorted(deeds,key=lambda x: int(x['assessed_value']))
+ 
