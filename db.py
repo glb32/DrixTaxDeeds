@@ -66,6 +66,3 @@ def fetchDeedsByCounty(county):
     return arr
 
 
-updateAuctionDB()
-
-
