@@ -1,4 +1,3 @@
-from distutils.command.build import build
 import pymongo
 from scraping import url_scraper,deed_scraper
 from urllib.parse import urlparse
@@ -45,7 +44,7 @@ def updateAuctionDB(foreclosure=False):
 def extractDeeds(auction):
     return auction['deeds']
 
-def fetchAuctionsInDesiredRange(date1,date2,price=None):
+def fetchDeedsInDesiredRange(date1,date2,price=None):
     auctions=client.DrixTaxDeeds.Auctions.find({"unixTimestamp":{"$gte":date1,"$lte":date2}})
     arr=[]
     for auction in auctions:
@@ -65,4 +64,6 @@ def fetchDeedsByCounty(county):
         arr.append(auction['deeds'])
     return arr
 
-
+def fetchNearestAuctions(date1,date2):
+    auctions = client.DrixTaxDeeds.Auctions.find({"unixTimestamp":{"$gte":date1,"$lte":date2}})
+    return auctions
