@@ -1,10 +1,9 @@
-from ast import Suite
-from email.mime import base
 import requests,bs4,json,re
 import datetime
 from dateutil import parser
 from dateutil import relativedelta
 import pytz,calendar
+
 class Auction:
     def __init__(self,date,location,url,deeds,unixTimestamp):
         self.date=date
@@ -61,25 +60,23 @@ county:str
 gets all auctions for a county (e.g. Clay, Duval, etc.)
 '''
 today = datetime.date.today()
-def getAuctionsPerCounty(baseURLs):
+def getAuctionsPerCounty(baseURL):
     auctions = []
-    for baseURL in baseURLs:
-        for i in range(1,3):
-            soup = bs4.BeautifulSoup(requests.get(baseURL['url']+ f"/index.cfm?zaction=user&zmethod=calendar&selCalDate=%7Bts%20%27{ today + relativedelta.relativedelta(months=i, day=1)}%2000%3A00%3A00%27%7D").content,'lxml')   
-            elem = soup.find_all("span", {"class": "CALTEXT"})
-            countyName = baseURL['name']
-
-        
-            for date in elem:
-                if "Tax Deed" == date.next_element:
-                    if  parser.parse(date.parent.get("dayid")+date.parent.find("span",{"class":"CALTIME"}).text,tzinfos={"CT":-6*3600,"ET":-5*3600}) >= datetime.datetime.now(pytz.timezone("US/Eastern")):
-                            auctions.append(Auction(url= baseURL['url'] + "/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE={}".format(date.parent.get("dayid")), date =str(date.parent.get("dayid") + ' ' + date.find('span',{'class':'CALTIME'}).text),location=countyName,deeds=[],unixTimestamp=calendar.timegm(parser.parse(date.parent.get("dayid")+date.parent.find("span",{"class":"CALTIME"}).text, tzinfos = {"CT":-6*3600,"ET":-5*3600}).timetuple())).__dict__)
-                    else:  
-                        continue
-            
-        
-
+    for i in range(3):
+        soup = bs4.BeautifulSoup(requests.get(baseURL['url']+ f"/index.cfm?zaction=user&zmethod=calendar&selCalDate=%7Bts%20%27{ today + relativedelta.relativedelta(months=i, day=1)}%2000%3A00%3A00%27%7D").content,'lxml')   
+        elem = soup.find_all("span", {"class": "CALTEXT"})
+        countyName = baseURL['name']
+        for date in elem:
+            if "Tax Deed" == date.next_element:
+                if  parser.parse(date.parent.get("dayid")+date.parent.find("span",{"class":"CALTIME"}).text,tzinfos={"CT":-6*3600,"ET":-5*3600}) >= datetime.datetime.now(pytz.timezone("US/Eastern")):
+                        auctions.append(Auction(url= baseURL['url'] + "/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE={}".format(date.parent.get("dayid")), date =str(date.parent.get("dayid") + ' ' + date.find('span',{'class':'CALTIME'}).text),location=countyName,deeds=[],unixTimestamp=calendar.timegm(parser.parse(date.parent.get("dayid")+date.parent.find("span",{"class":"CALTIME"}).text, tzinfos = {"CT":-6*3600,"ET":-5*3600}).timetuple())).__dict__)
+                else:  
+                    continue
+    
     return auctions
+        
+
+    
 
 
 

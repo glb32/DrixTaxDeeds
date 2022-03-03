@@ -32,14 +32,14 @@ def getAndParseAuctionHTML(session,base,direction):
     raw = raw.strip()
     return raw
 
-def parseDeeds(auctionUrl):
+def parseDeeds(auction):
     deeds = []
     session=requests.Session()
-    session.get(auctionUrl)
-    raw = getAndParseAuctionHTML(session=session,base=urlparse(auctionUrl).netloc,direction=0)
+    session.get(auction['url'])
+    raw = getAndParseAuctionHTML(session=session,base=urlparse(auction['url']).netloc,direction=0)
     
     while True:
-        next_call = getAndParseAuctionHTML(session,urlparse(auctionUrl).netloc,1)
+        next_call = getAndParseAuctionHTML(session,urlparse(auction['url']).netloc,1)
         if next_call in raw:
             break
         else:
@@ -57,5 +57,5 @@ def parseDeeds(auctionUrl):
 
         deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value).__dict__)
     
-    return sorted(deeds,key=lambda x: int(x['assessed_value']))
+    auction['deeds'] = sorted(deeds,key=lambda x: int(x['assessed_value']))
  

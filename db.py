@@ -1,6 +1,7 @@
+import multiprocessing
 import pymongo
 from scraping import url_scraper,deed_scraper
-from urllib.parse import urlparse
+from itertools import chain
 client=pymongo.MongoClient("mongodb+srv://admin:admin@cluster0.goify.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 base = client.DrixTaxDeeds
 
@@ -29,16 +30,20 @@ def buildSiteDB(state):
             
 
 def updateAuctionDB(foreclosure=False):
-    SiteObjects = []
-    auctions = []
-    for x in base.Taxdeeds.find({}):
-        SiteObjects.append(x)
-    auctions = url_scraper.getAuctionsPerCounty(SiteObjects)
-    for auction in auctions:
-        auction['deeds'] = deed_scraper.parseDeeds(auction['url'])
+    data = []
+    for dataEntry in base.Taxdeeds.find({}):
+        data.append(dataEntry)
 
+    p1= multiprocessing.Pool(len(data))
+    
+    auctions =p1.map(url_scraper.getAuctionsPerCounty,[x for x in data])
+    auctions = []
+    p2 = multiprocessing.Pool(len(auctions))
+    p2.map(deed_scraper.parseDeeds,auctions)
+    
     client.DrixTaxDeeds.Auctions.delete_many({})
     client.DrixTaxDeeds.Auctions.insert_many(auctions)
+    return 0
 
 
 def extractDeeds(auction):
@@ -68,6 +73,9 @@ def fetchDeedsInDesiredRangeAndCounty(date1,date2,county,price=None):
             arr[auction]=[deed for deed in arr[auction] if deed['assessed_value']>=price[0] and deed['assessed_value']<=price[1]]
         
     return arr
+def fetchAllAuctions():
+    deeds = client.DrixTaxDeeds.Auctions.find({})
+    return deeds
 
 def fetchDeedsByCounty(county):
     auctions = client.DrixTaxDeeds.Auctions.find({"location":county})
@@ -79,3 +87,7 @@ def fetchDeedsByCounty(county):
 def fetchNearestAuctions(date1,date2):
     auctions = client.DrixTaxDeeds.Auctions.find({"unixTimestamp":{"$gte":date1,"$lte":date2}})
     return auctions
+def RemoveAuction(auction):
+    client.DrixTaxDeeds.Auctions.delete_one({'_id':auction['_id']})
+
+updateAuctionDB()

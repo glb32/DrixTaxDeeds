@@ -5,7 +5,10 @@ from dateutil import parser
 import calendar
 bot = discord.Bot()
 from discord.commands import Option
+import threading
+import concurrent.futures
 token = input("Please input your token:")
+refreshTimeout = 4*86400
 @bot.event
 async def on_ready():
     print(f"We have logged in as {bot.user}")
@@ -62,4 +65,39 @@ async def fetch_deeds_county(ctx, time: Option(str, "Time range. Format = 2022/2
             embeds.add_field(name="Assessed Value:", value=deed['assessed_value'],inline=True)
             #embeds.add_field(name="Associated Website (County/Location)",value=data[auction]['location'])
             await ctx.send(embed=embeds)
+@bot.slash_command(guild_ids=[922599971461672961])
+async def set_timeout(ctx,timeout: Option(int,"Timeout of database refresh, recommended around every 4 days")):
+    refreshTimeout=timeout
+    await ctx.send(f"Set timeout to {timeout} days!")
+
+auction = {'date':'a','location':'s','url':'ss','deeds':[2,3,4,5,6,6],"_id":"0xbcc29def8002a"}
+
+@bot.event
+async def on_ready():
+    channel = bot.get_channel(922599971461672964)
+    embed =discord.Embed()
+    embed.add_field(name='Date:', value= auction['date'])
+    embed.add_field(name='Location:',value=auction['location'])
+    embed.add_field(name='URL:',value=auction['url'])
+    embed.add_field(name='Number of deeds:',value=len(auction['deeds']))
+    await channel.send(embed=embed)
+    await channel.send(f"@everyone, Auction with id {auction['_id']} will start in 15 minutes!, updating database!")
+    time1= time.time()
+    db.updateAuctionDB()
+    time2=time.time()
+    await channel.send(f"Database updated in {time2-time1} seconds, to see this auction, use this command: /check_auction_by_id {auction['_id']}")
+
+async def main():
+    auctions = db.fetchAllAuctions()
+    while True:
+        for auction in auctions:
+            if auction['unixTimestamp'] <= time.time()-600:
+                   pass
+        
+            else: 
+                pass
+        time.sleep(1)
 bot.run(token)
+        
+
+
