@@ -57,5 +57,5 @@ def parseDeeds(auction):
 
         deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value).__dict__)
     
-    auction['deeds'] = sorted(deeds,key=lambda x: int(x['assessed_value']))
+    auction['deeds'].append(sorted(deeds,key=lambda x: int(x['assessed_value'])))
  

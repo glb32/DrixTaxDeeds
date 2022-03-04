@@ -37,8 +37,9 @@ def updateAuctionDB(foreclosure=False):
     p1= multiprocessing.Pool(len(data))
     
     auctions =p1.map(url_scraper.getAuctionsPerCounty,[x for x in data])
-    auctions = []
-    p2 = multiprocessing.Pool(len(auctions))
+    auctions = list(chain.from_iterable(auctions))
+
+    p2 = multiprocessing.Pool(63)
     p2.map(deed_scraper.parseDeeds,auctions)
     
     client.DrixTaxDeeds.Auctions.delete_many({})
@@ -90,4 +91,5 @@ def fetchNearestAuctions(date1,date2):
 def RemoveAuction(auction):
     client.DrixTaxDeeds.Auctions.delete_one({'_id':auction['_id']})
 
-updateAuctionDB()
+if __name__ =="__main__":
+    updateAuctionDB()
