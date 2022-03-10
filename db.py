@@ -2,6 +2,7 @@ import multiprocessing
 import pymongo
 from scraping import url_scraper,deed_scraper
 from itertools import chain
+import concurrent.futures
 client=pymongo.MongoClient("mongodb+srv://admin:admin@cluster0.goify.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 base = client.DrixTaxDeeds
 
@@ -31,19 +32,21 @@ def buildSiteDB(state):
 
 def updateAuctionDB(foreclosure=False):
     data = []
+    auctions = []
+    output =[]
     for dataEntry in base.Taxdeeds.find({}):
         data.append(dataEntry)
 
-    p1= multiprocessing.Pool(len(data))
-    
-    auctions =p1.map(url_scraper.getAuctionsPerCounty,[x for x in data])
-    auctions = list(chain.from_iterable(auctions))
+    with concurrent.futures.ThreadPoolExecutor() as Executor:
+        for site in range(len(data)):
+            auctions.append(Executor.submit(url_scraper.getAuctionsPerCounty(data[site])))
 
-    p2 = multiprocessing.Pool(63)
-    p2.map(deed_scraper.parseDeeds,auctions)
+    with concurrent.futures.ThreadPoolExecutor() as Executor:
+        for auction in range(len(auctions)):
+            output.append(Executor.submit(deed_scraper.parseDeeds(auction)))
     
     client.DrixTaxDeeds.Auctions.delete_many({})
-    client.DrixTaxDeeds.Auctions.insert_many(auctions)
+    client.DrixTaxDeeds.Auctions.insert_many(output)
     return 0
 
 

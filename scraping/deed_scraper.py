@@ -1,5 +1,3 @@
-from ast import parse
-from attr import attrs
 import requests, time, price_parser
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
@@ -58,4 +56,4 @@ def parseDeeds(auction):
         deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value).__dict__)
     
     auction['deeds'].append(sorted(deeds,key=lambda x: int(x['assessed_value'])))
- 
+    return auction
