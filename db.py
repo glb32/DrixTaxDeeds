@@ -1,3 +1,4 @@
+from doctest import OutputChecker
 import multiprocessing
 import pymongo
 from scraping import url_scraper,deed_scraper
@@ -32,18 +33,22 @@ def buildSiteDB(state):
 
 def updateAuctionDB(foreclosure=False):
     data = []
-    auctions = []
+    auction_processes = []
+    auctions=[]
     output =[]
     for dataEntry in base.Taxdeeds.find({}):
         data.append(dataEntry)
 
     with concurrent.futures.ThreadPoolExecutor() as Executor:
         for site in range(len(data)):
-            auctions.append(Executor.submit(url_scraper.getAuctionsPerCounty(data[site])))
+            auction_processes.append(Executor.submit(url_scraper.getAuctionsPerCounty,data[site]))
+        
+    auctions = list(chain.from_iterable([auction._result for auction in auction_processes]))
 
     with concurrent.futures.ThreadPoolExecutor() as Executor:
-        for auction in range(len(auctions)):
-            output.append(Executor.submit(deed_scraper.parseDeeds(auction)))
+        for auction in auctions:
+            output.append(Executor.submit(deed_scraper.parseDeeds,auction))
+    ouptut = [auction._result for auction in output]
     
     client.DrixTaxDeeds.Auctions.delete_many({})
     client.DrixTaxDeeds.Auctions.insert_many(output)

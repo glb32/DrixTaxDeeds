@@ -1,6 +1,8 @@
+from ast import parse
 import requests, time, price_parser
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
+
 
 class Deed():
     def __init__(self, case_no, opening_bid, url, property_address, assessed_value):
@@ -44,16 +46,21 @@ def parseDeeds(auction):
             raw = raw+"\n"+next_call
 
     soup = BeautifulSoup(raw,features='lxml')
-    elements = soup.find_all('div',{'aria-label':'Auction Details'})
+    with open('raw.html','w+')as html:
+        html.write(raw)
+        html.close()
+    elements = soup.find_all('div',{'class':'AUCTION_DETAILS'})
     for element in range(len(elements)):
-        
-        case_no = elements[element].find('th',{'aria-label':'Case Number'}).next_sibling.text
-        opening_bid = elements[element].find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text).next_sibling.text if elements[element].find(lambda tag:tag.name=="th" and "Opening Bid:" in tag.text) is not None else "ERROR:Site provided wrong data"
-        parcel_url = elements[element].find(lambda tag:tag.name=="th" and "Parcel ID:" in tag.text).next_sibling.find('a',{'onclick':"return showExitPopup();"})['href'] if elements[element].find(lambda tag:tag.name=="th" and "Parcel ID:" in tag.text) is not None else elements[element].find(lambda tag:tag.name=="th" and "Alternate Key" in tag.text).next_sibling.find('a',{'onclick':"return showExitPopup();"})['href']
-        parcel_address = str(elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next_sibling.text + ' ' + elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next.next.next.next.text) if elements[element].find(lambda tag:tag.name=="th" and "Property Address:" in tag.text) is not None else "NO ADDRESS PROVIDED, CHECK PARCEL URL"
-        assessed_value = int(price_parser.parser.parse_price(elements[element].find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text).next_sibling.text).amount) if elements[element].find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text) is not None else 0
-
+        data = elements[element].find_all('td')
+        case_no=data[1]
+        opening_bid = data[2]
+        parcel_url = data[3].next_sibling.attrs['href']
+        parcel_address = str(data[4].text + data[5].text if data[5] is not None else '')
+        #assessed_value = int( price_parser.parser.parse_price(data[6] if data[6] is not None and data else 0) )
+       
         deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value).__dict__)
     
-    auction['deeds'].append(sorted(deeds,key=lambda x: int(x['assessed_value'])))
+    auction['deeds']=sorted(deeds,key=lambda x: int(x['assessed_value']))
     return auction
+a={'url':'https://hillsborough.realtaxdeed.com/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE=03/24/2022','deeds':[]}
+parseDeeds(a)
