@@ -48,10 +48,10 @@ def updateAuctionDB(foreclosure=False):
     with concurrent.futures.ThreadPoolExecutor() as Executor:
         for auction in auctions:
             output.append(Executor.submit(deed_scraper.parseDeeds,auction))
-    ouptut = [auction._result for auction in output]
+    parsed = [auction._result for auction in output]
     
     client.DrixTaxDeeds.Auctions.delete_many({})
-    client.DrixTaxDeeds.Auctions.insert_many(output)
+    client.DrixTaxDeeds.Auctions.insert_many(parsed)
     return 0
 
 

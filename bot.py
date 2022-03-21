@@ -5,8 +5,7 @@ from dateutil import parser
 import calendar
 bot = discord.Bot()
 from discord.commands import Option
-import threading
-import concurrent.futures
+
 token = input("Please input your token:")
 refreshTimeout = 4*86400
 @bot.event
