@@ -72,7 +72,8 @@ def parseDeeds(auction):
             assessed_value = int(price_parser.parser.parse_price(div.find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text).next_sibling.text).amount) if div.find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text) is not None else 0
 
             deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value).__dict__)
-    
+        divs.clear()
         
     auction['deeds']=sorted(deeds,key=lambda x: int(x['assessed_value']))
     return auction
+parseDeeds({'url':'https://lee.realtaxdeed.com/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE=03/29/2022','deeds':[]})
