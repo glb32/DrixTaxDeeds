@@ -51,6 +51,7 @@ async def auctions_30_day_range(ctx):
         embed.add_field(name="Auction URL:", value=auctions[auction]['url'],inline=True)
         embed.add_field(name="Total Number of Deeds", value=str(len(auctions[auction]['deeds'])),inline=True)
         await ctx.send(embed=embed)
+
 @bot.slash_command(guild_ids=[922599971461672961])
 async def fetch_deeds_county(ctx, time: Option(str, "Time range. Format = 2022/2/20 2022/2/22",Required=True), county: Option(str,"County to look for"), price: Option(str,"Price Range. format: 250 30000",Required=False)):
     data = db.fetchDeedsInDesiredRangeAndCounty(calendar.timegm(parser.parse(time.split(" ")[0]).timetuple()) , calendar.timegm(parser.parse(time.split(" ")[1]).timetuple()),county=county, price=[int(price.split(" ")[0]),int(price.split(" ")[1])])
@@ -64,15 +65,16 @@ async def fetch_deeds_county(ctx, time: Option(str, "Time range. Format = 2022/2
             embeds.add_field(name="Assessed Value:", value=deed['assessed_value'],inline=True)
             #embeds.add_field(name="Associated Website (County/Location)",value=data[auction]['location'])
             await ctx.send(embed=embeds)
+
 @bot.slash_command(guild_ids=[922599971461672961])
 async def set_timeout(ctx,timeout: Option(int,"Timeout of database refresh, recommended around every 4 days")):
     refreshTimeout=timeout
     await ctx.send(f"Set timeout to {timeout} days!")
 
-auction = {'date':'a','location':'s','url':'ss','deeds':[2,3,4,5,6,6],"_id":"0xbcc29def8002a"}
+
 
 @bot.event
-async def on_ready():
+async def notify(auction):
     channel = bot.get_channel(922599971461672964)
     embed =discord.Embed()
     embed.add_field(name='Date:', value= auction['date'])

@@ -60,7 +60,7 @@ def parseDeeds(auction):
     for document in raw:
         aid = document.split("rlist")[1]
         ids=re.findall('\d{7}',aid)
-        soup = BeautifulSoup(document)
+        soup = BeautifulSoup(document,features="lxml")
         for id in ids:
             div = soup.find('div',{'aid':id})
             divs.append(div)
