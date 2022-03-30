@@ -23,7 +23,8 @@ async def fetch_deeds_by_date_and_price(ctx, time: Option(str, "Time range. Form
             embeds.add_field(name="Parcel URL:", value=deed['url'],inline=True)
             embeds.add_field(name="Property Address:", value=deed['property_address'],inline=True)
             embeds.add_field(name="Assessed Value:", value=deed['assessed_value'],inline=True)
-            #embeds.add_field(name="Associated Website (County/Location)",value=data[auction]['location'])
+            embeds.add_field(name="Associated Website (County/Location)",value=deed['location'],inline=True)
+            embeds.add_field(name="Date:", value=deed['date'],inline=True)
             await ctx.send(embed=embeds)
 
 @bot.slash_command(guild_ids=[922599971461672961])
@@ -37,7 +38,8 @@ async def fetch_deeds_by_county(ctx,county: Option(str,"County",Required=True)):
             embeds.add_field(name="Parcel URL:", value=deed['url'],inline=True)
             embeds.add_field(name="Property Address:", value=deed['property_address'],inline=True)
             embeds.add_field(name="Assessed Value:", value=deed['assessed_value'],inline=True)
-            #embeds.add_field(name="Associated Website (County/Location)",value=data[auction]['location'],inline=True)
+            embeds.add_field(name="Associated Website (County/Location)",value=deed['location'],inline=True)
+            embeds.add_field(name="Date:", value=deed['date'],inline=True)
             await ctx.send(embed=embeds)
 
 @bot.slash_command(guild_ids=[922599971461672961])
@@ -63,7 +65,8 @@ async def fetch_deeds_county(ctx, time: Option(str, "Time range. Format = 2022/2
             embeds.add_field(name="Parcel URL:", value=deed['url'],inline=True)
             embeds.add_field(name="Property Address:", value=deed['property_address'],inline=True)
             embeds.add_field(name="Assessed Value:", value=deed['assessed_value'],inline=True)
-            #embeds.add_field(name="Associated Website (County/Location)",value=data[auction]['location'])
+            embeds.add_field(name="Associated Website (County/Location)",value=deed['location'],inline=True)
+            embeds.add_field(name="Date:", value=deed['date'],inline=True)
             await ctx.send(embed=embeds)
 
 @bot.slash_command(guild_ids=[922599971461672961])
@@ -100,5 +103,3 @@ async def main():
         time.sleep(1)
 bot.run(token)
         
-
-

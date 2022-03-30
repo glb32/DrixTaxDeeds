@@ -1,15 +1,17 @@
-import requests, time, price_parser,re
+import requests, time, price_parser,re,hashlib
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
 
 class Deed():
-    def __init__(self, case_no, opening_bid, url, property_address, assessed_value):
+    def __init__(self, case_no, opening_bid, url, property_address, assessed_value,date,location):
         self.case_no = case_no
         self.opening_bid = opening_bid
         self.url = url
         self.property_address = property_address
         self.assessed_value = assessed_value
+        self.date=date
+        self.location=location
         
 #current time in milliseconds
 def nowMilliseconds():
@@ -70,10 +72,11 @@ def parseDeeds(auction):
             parcel_url = div.find(lambda tag:tag.name=="th" and "Parcel ID:" in tag.text).next_sibling.find('a',{'onclick':"return showExitPopup();"})['href'] if div.find(lambda tag:tag.name=="th" and "Parcel ID:" in tag.text) is not None else div.find(lambda tag:tag.name=="th" and "Alternate Key" in tag.text).next_sibling.find('a',{'onclick':"return showExitPopup();"})['href']
             parcel_address = str(div.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next_sibling.text + ' ' + div.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text).next.next.next.next.text) if div.find(lambda tag:tag.name=="th" and "Property Address:" in tag.text) is not None else "NO ADDRESS PROVIDED, CHECK PARCEL URL"
             assessed_value = int(price_parser.parser.parse_price(div.find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text).next_sibling.text).amount) if div.find(lambda tag:tag.name=="th" and "Assessed Value:" in tag.text) is not None else 0
-
-            deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value).__dict__)
+            date = auction['date']
+            location = auction['location']
+            deeds.append(Deed(case_no,opening_bid,parcel_url,parcel_address,assessed_value,date,location).__dict__)
         divs.clear()
         
     auction['deeds']=sorted(deeds,key=lambda x: int(x['assessed_value']))
+    
     return auction
-parseDeeds({'url':'https://lee.realtaxdeed.com/index.cfm?zaction=AUCTION&Zmethod=PREVIEW&AUCTIONDATE=03/29/2022','deeds':[]})

@@ -1,5 +1,3 @@
-from doctest import OutputChecker
-import multiprocessing
 import pymongo
 from scraping import url_scraper,deed_scraper
 from itertools import chain
@@ -13,7 +11,6 @@ buildSiteDB()
 @param:
 state = int (0,3)
 see definition of getAllUrlsPerState()
-
 @desc:
 organizes tax deed and foreclosure site urls into mongoDB database 
 '''

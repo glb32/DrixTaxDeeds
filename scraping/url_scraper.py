@@ -11,6 +11,7 @@ class Auction:
         self.location=location
         self.url=url
         self.deeds=deeds
+        
 class Site:
     def __init__(self,name,url,isTaxdeed=None):
         self.name = name
